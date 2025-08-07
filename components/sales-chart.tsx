@@ -5,7 +5,7 @@ import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'rec
 interface SalesChartProps {
   data: Array<{
     date: string;
-    orders: number;
+    orders: string; // Changed from number to string to match database
     revenue: string;
   }>;
 }
@@ -14,7 +14,7 @@ export function SalesChart({ data }: SalesChartProps) {
   const chartData = data.map(item => ({
     date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     revenue: Number(item.revenue),
-    orders: Number(item.orders)
+    orders: Number(item.orders) // Convert to number for chart
   })).reverse();
 
   return (

@@ -13,6 +13,30 @@ export default async function Dashboard() {
     getTopProducts()
   ]);
 
+  // Type the database results properly
+  const typedSalesData = salesData as Array<{
+    date: string;
+    orders: string;
+    revenue: string;
+  }>;
+
+  const typedTopProducts = topProducts as Array<{
+    name: string;
+    price: string;
+    total_sold: string;
+    total_revenue: string;
+  }>;
+
+  const typedRecentOrders = recentOrders as Array<{
+    id: number;
+    total_amount: string;
+    status: string;
+    order_date: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+  }>;
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -102,7 +126,7 @@ export default async function Dashboard() {
               <CardDescription>Daily revenue and order count</CardDescription>
             </CardHeader>
             <CardContent>
-              <SalesChart data={salesData} />
+              <SalesChart data={typedSalesData} />
             </CardContent>
           </Card>
 
@@ -112,7 +136,7 @@ export default async function Dashboard() {
               <CardDescription>Best performing products by quantity sold</CardDescription>
             </CardHeader>
             <CardContent>
-              <TopProductsChart data={topProducts} />
+              <TopProductsChart data={typedTopProducts} />
             </CardContent>
           </Card>
         </div>
@@ -125,7 +149,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentOrders.map((order: any) => (
+              {typedRecentOrders.map((order) => (
                 <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div>

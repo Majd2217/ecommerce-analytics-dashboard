@@ -26,7 +26,21 @@ async function getOrdersWithDetails() {
 }
 
 export default async function OrdersPage() {
-  const orders = await getOrdersWithDetails();
+  const ordersData = await getOrdersWithDetails();
+  
+  const orders = ordersData as Array<{
+    id: number;
+    total_amount: string;
+    status: string;
+    order_date: string;
+    payment_method: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    city: string;
+    state: string;
+    item_count: string;
+  }>;
 
   const formatCurrency = (amount: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -88,7 +102,7 @@ export default async function OrdersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order: any) => (
+                  {orders.map((order) => (
                     <tr key={order.id} className="border-b hover:bg-gray-50">
                       <td className="p-4 font-mono">#{order.id}</td>
                       <td className="p-4">

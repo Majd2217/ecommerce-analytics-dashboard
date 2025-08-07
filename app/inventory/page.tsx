@@ -1,108 +1,116 @@
-import { getProducts, getLowStockProducts } from '@/lib/db';
+import { sql } from '@/lib/db';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, Package, Plus } from 'lucide-react';
-import Link from 'next/link';
-import { ProductTable } from '@/components/product-table';
+import { Users } from 'lucide-react';
 
-export default async function InventoryPage() {
-  const [products, lowStockProducts] = await Promise.all([
-    getProducts(),
-    getLowStockProducts()
-  ]);
+async function getCustomersWithStats() {
+  return await sql`
+    SELECT 
+      c.*,
+      COUNT(o.id) as total_orders,
+      COALESCE(SUM(o.total_amount), 0) as total_spent,
+      MAX(o.order_date) as last_order_date
+    FROM customers c
+    LEFT JOIN orders o ON c.id = o.customer_id
+    GROUP BY c.id
+    ORDER BY total_spent DESC
+  `;
+}
 
-  // Type the results properly
-  const typedProducts = products as Array<{
+export default async function CustomersPage() {
+  const customersData = await getCustomersWithStats();
+  
+  const customers = customersData as Array<{
     id: number;
-    name: string;
-    description: string;
-    price: string;
-    stock_quantity: number;
-    category: string;
-    sku: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    zip_code: string;
     created_at: string;
+    total_orders: string;
+    total_spent: string;
+    last_order_date: string | null;
   }>;
 
-  const typedLowStockProducts = lowStockProducts as Array<{
-    id: number;
-    name: string;
-    stock_quantity: number;
-    category: string;
-  }>;
-
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(amount);
+    }).format(Number(amount));
   };
 
-  const getStockStatus = (quantity: number) => {
-    if (quantity === 0) return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
-    if (quantity < 20) return { label: 'Low Stock', color: 'bg-yellow-100 text-yellow-800' };
-    return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
+  const formatDate = (date: string | null) => {
+    if (!date) return 'Never';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
-            <p className="text-gray-600 mt-2">Manage your product inventory and stock levels</p>
-          </div>
-          <Button asChild>
-            <Link href="/inventory/add">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Link>
-          </Button>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Customer Management</h1>
+          <p className="text-gray-600 mt-2">View and manage your customer base</p>
         </div>
 
-        {/* Low Stock Alert */}
-        {typedLowStockProducts.length > 0 && (
-          <Card className="mb-6 border-yellow-200 bg-yellow-50">
-            <CardHeader>
-              <CardTitle className="flex items-center text-yellow-800">
-                <AlertTriangle className="h-5 w-5 mr-2" />
-                Low Stock Alert
-              </CardTitle>
-              <CardDescription className="text-yellow-700">
-                {typedLowStockProducts.length} products are running low on stock
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {typedLowStockProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                    <div>
-                      <p className="font-medium">{product.name}</p>
-                      <p className="text-sm text-gray-600">{product.category}</p>
-                    </div>
-                    <Badge variant="outline" className="text-red-600 border-red-200">
-                      {product.stock_quantity} left
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Products Table */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Package className="h-5 w-5 mr-2" />
-              All Products
+              <Users className="h-5 w-5 mr-2" />
+              All Customers
             </CardTitle>
             <CardDescription>
-              Complete list of products in your inventory
+              Complete list of customers with purchase history
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ProductTable products={typedProducts} />
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-4 font-medium">Customer</th>
+                    <th className="text-left p-4 font-medium">Contact</th>
+                    <th className="text-left p-4 font-medium">Location</th>
+                    <th className="text-left p-4 font-medium">Orders</th>
+                    <th className="text-left p-4 font-medium">Total Spent</th>
+                    <th className="text-left p-4 font-medium">Last Order</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customers.map((customer) => (
+                    <tr key={customer.id} className="border-b hover:bg-gray-50">
+                      <td className="p-4">
+                        <div>
+                          <p className="font-medium">{customer.first_name} {customer.last_name}</p>
+                          <p className="text-sm text-gray-600">ID: {customer.id}</p>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div>
+                          <p className="text-sm">{customer.email}</p>
+                          <p className="text-sm text-gray-600">{customer.phone}</p>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div>
+                          <p className="text-sm">{customer.city}, {customer.state}</p>
+                          <p className="text-sm text-gray-600">{customer.zip_code}</p>
+                        </div>
+                      </td>
+                      <td className="p-4">{customer.total_orders}</td>
+                      <td className="p-4 font-medium">{formatCurrency(customer.total_spent)}</td>
+                      <td className="p-4 text-sm">{formatDate(customer.last_order_date)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       </div>
