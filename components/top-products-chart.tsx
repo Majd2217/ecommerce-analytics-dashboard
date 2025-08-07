@@ -5,7 +5,7 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recha
 interface TopProductsChartProps {
   data: Array<{
     name: string;
-    total_sold: string; // Changed from number to string to match database
+    total_sold: string;
     total_revenue: string;
   }>;
 }
@@ -13,7 +13,7 @@ interface TopProductsChartProps {
 export function TopProductsChart({ data }: TopProductsChartProps) {
   const chartData = data.map(item => ({
     name: item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name,
-    sold: Number(item.total_sold), // Convert to number for chart
+    sold: Number(item.total_sold),
     revenue: Number(item.total_revenue)
   }));
 
@@ -30,7 +30,7 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
           width={100}
         />
         <Tooltip 
-          formatter={(value, name) => [
+          formatter={(value: any, name: any) => [
             value,
             name === 'sold' ? 'Units Sold' : 'Revenue'
           ]}
