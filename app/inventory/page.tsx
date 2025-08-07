@@ -12,6 +12,25 @@ export default async function InventoryPage() {
     getLowStockProducts()
   ]);
 
+  // Type the results properly
+  const typedProducts = products as Array<{
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    stock_quantity: number;
+    category: string;
+    sku: string;
+    created_at: string;
+  }>;
+
+  const typedLowStockProducts = lowStockProducts as Array<{
+    id: number;
+    name: string;
+    stock_quantity: number;
+    category: string;
+  }>;
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -42,7 +61,7 @@ export default async function InventoryPage() {
         </div>
 
         {/* Low Stock Alert */}
-        {lowStockProducts.length > 0 && (
+        {typedLowStockProducts.length > 0 && (
           <Card className="mb-6 border-yellow-200 bg-yellow-50">
             <CardHeader>
               <CardTitle className="flex items-center text-yellow-800">
@@ -50,12 +69,12 @@ export default async function InventoryPage() {
                 Low Stock Alert
               </CardTitle>
               <CardDescription className="text-yellow-700">
-                {lowStockProducts.length} products are running low on stock
+                {typedLowStockProducts.length} products are running low on stock
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {lowStockProducts.map((product: any) => (
+                {typedLowStockProducts.map((product) => (
                   <div key={product.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
                     <div>
                       <p className="font-medium">{product.name}</p>
@@ -83,7 +102,7 @@ export default async function InventoryPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ProductTable products={products} />
+            <ProductTable products={typedProducts} />
           </CardContent>
         </Card>
       </div>

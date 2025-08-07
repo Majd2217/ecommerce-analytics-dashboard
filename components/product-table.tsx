@@ -9,11 +9,12 @@ interface Product {
   id: number;
   name: string;
   description: string;
-  price: string;
+  price: string; // Change from number to string since database returns decimal as string
   stock_quantity: number;
   category: string;
   sku: string;
   created_at: string;
+  updated_at?: string; // Make optional since it might not always be present
 }
 
 interface ProductTableProps {
@@ -44,7 +45,7 @@ export function ProductTable({ products }: ProductTableProps) {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = [...new Set(products.map(p => p.category))];
+  const categories = Array.from(new Set(products.map(p => p.category)));
 
   return (
     <div className="space-y-4">
